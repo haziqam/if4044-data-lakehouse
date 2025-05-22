@@ -1,6 +1,3 @@
 [submodule "tpc-h/tpch-dbgen"]
 	path = tpc-h/tpch-dbgen
 	url = https://github.com/OWNER/tpch-dbgen.git
-[submodule "tpc-h/tpch-dbgen-to-aws-s3"]
-	path = tpc-h/tpch-dbgen-to-aws-s3
-	url = https://github.com/OWNER/tpch-dbgen-to-aws-s3.git
