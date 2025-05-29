@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Size, in GBs, of the total dataset to be created
-SIZE=1
+SIZE=50
 
 # For each table, how many files should it be split into?
 CHUNKS=10
@@ -14,6 +14,9 @@ ROOT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Directory to which you've cloned tpch-dbgen from github
 DBGEN_PATH="$ROOT_PATH/tpch-dbgen"
+
+# Python script for converting tbl -> csv + parquet
+CONVERTER_SCRIPT="$ROOT_PATH/scripts/tbl_to_csv_parquet.py"
 
 #########################################
 # Should not need to edit below this line
@@ -33,17 +36,31 @@ done
 
 cd "$ROOT_PATH" || exit 1
 
-# Loop through and upload each file to S3
-for f in "$OUTPUT_DIR"/*; do
-
-  # Get filename from full file path
+# Process each generated .tbl file
+for f in "$OUTPUT_DIR"/*.tbl*; do
+  # Get filename without path
   FILENAME=$(basename -- "$f")
 
-  # Match anything *before* the .tbl or .tbl.X where X is one or more digits
-  REGEX='\w+(?=\.tbl)'
-  TABLE=$(echo "$FILENAME" | grep -Po "$REGEX")
+  # Extract table name before .tbl or .tbl.N (strip numbers)
+  TABLE=$(echo "$FILENAME" | sed -E 's/([a-zA-Z]+)\.tbl.*/\1/' | tr '[:lower:]' '[:upper:]')
 
-  # Upload file to S3
-  aws s3 cp "$f" "s3://$S3_BUCKET/$DIR_NAME/$TABLE/$FILENAME.csv"
+  echo "Processing $FILENAME (Table: $TABLE)"
+
+  # Define output file paths
+  CSV_FILE="${f}.csv"
+  PARQUET_FILE="${f}.parquet"
+
+  # Run Python converter
+  python3 "$CONVERTER_SCRIPT" \
+    --input "$f" \
+    --output_csv "$CSV_FILE" \
+    --output_parquet "$PARQUET_FILE" \
+    --table "$TABLE"
+
+  # Upload CSV to S3
+  aws s3 cp "$CSV_FILE" "s3://$S3_BUCKET/$DIR_NAME-csv/$TABLE/$(basename "$CSV_FILE")"
+
+  # Upload Parquet to S3
+  aws s3 cp "$PARQUET_FILE" "s3://$S3_BUCKET/$DIR_NAME-parquet/$TABLE/$(basename "$PARQUET_FILE")"
 
 done
