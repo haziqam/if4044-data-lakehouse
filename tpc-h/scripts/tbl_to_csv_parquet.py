@@ -136,7 +136,7 @@ tpch_schema = {
 def setup_logging(log_file=None):
     """Setup logging configuration"""
     if log_file is None:
-        log_file = f"logs/tpch_conversion.log"
+        log_file = f"logs/tpch_conversion_2.log"
     
     logger = logging.getLogger(__name__)
     if not logger.handlers:
@@ -149,6 +149,24 @@ def setup_logging(log_file=None):
             ]
         )
     return logger
+
+def create_spark_compatible_schema(df, table_name):
+    """Create a PyArrow schema that's compatible with Spark"""
+    schema_fields = []
+    dtypes = tpch_schema[table_name]["dtypes"]
+    
+    for col in df.columns:
+        if dtypes[col] == 'date':
+            # Use DATE type instead of TIMESTAMP for better Spark compatibility
+            schema_fields.append(pa.field(col, pa.date32()))
+        elif dtypes[col] == int:
+            schema_fields.append(pa.field(col, pa.int64()))
+        elif dtypes[col] == float:
+            schema_fields.append(pa.field(col, pa.float64()))
+        elif dtypes[col] == str:
+            schema_fields.append(pa.field(col, pa.string()))
+    
+    return pa.schema(schema_fields)
 
 def tbl_to_csv_parquet(
         input_tbl_file: str, 
@@ -180,25 +198,41 @@ def tbl_to_csv_parquet(
         
         df.columns = column_names
         
+        # Handle date columns differently for better Spark compatibility
         for col, dtype in dtypes.items():
             if dtype == 'date':
-                df[col] = pd.to_datetime(df[col])
+                # Parse dates and convert to date (not datetime)
+                df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
             else:
                 df[col] = df[col].astype(dtype)
 
         logger.info(f"Successfully read {len(df)} rows from {input_tbl_file}")
 
+        # Save CSV
         df.to_csv(output_csv_file, sep=";", index=False)
         logger.info(f"Successfully converted {input_tbl_file} to {output_csv_file}")
 
-        table = pa.Table.from_pandas(df)
-        pq.write_table(table, output_parquet_file, compression='snappy')
+        # Create Spark-compatible schema and save Parquet
+        schema = create_spark_compatible_schema(df, table_name)
+        table = pa.Table.from_pandas(df, schema=schema)
+        
+        # Write with specific options for Spark compatibility
+        pq.write_table(
+            table, 
+            output_parquet_file, 
+            compression='snappy',
+            use_deprecated_int96_timestamps=False,  # Avoid deprecated timestamp format
+            coerce_timestamps='ms',  # Use millisecond precision instead of nanoseconds
+            allow_truncated_timestamps=True
+        )
+        
         logger.info(f"Successfully converted {input_tbl_file} to {output_parquet_file}")
         logger.info(f"Parquet file saved at: {output_parquet_file}")
         
     except Exception as e:
         logger.error(f"Error processing {input_tbl_file}: {str(e)}")
         raise
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert TPC-H .tbl file to CSV and Parquet")
