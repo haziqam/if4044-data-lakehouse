@@ -25,10 +25,6 @@
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
 - [TPC-H Benchmark](#tpc-h-benchmark)
-- [Data Transformation with dbt](#data-transformation-with-dbt)
-- [Accessing the Services](#accessing-the-services)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
