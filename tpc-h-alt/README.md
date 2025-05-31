@@ -53,8 +53,38 @@ For reference, the default tables are: customer, lineitem, nation, orders, part,
 > [!TIP]
 > For more information, kindly visit the DuckDB official documentation at https://duckdb.org/docs/stable
 
+## Uploading to R2
 
+To upload your CSV and Parquet files to R2, you will need to setup a remote with RClone. It is advisable to use the latest version of rclone since the earlier version (especially <v1.59) does not fully adhere to the S3 specifications, causing `HTTP 401: Unauthorized` errors.
 
+Make sure to uninstall any old rclone version (if any), then run:
 
+    sudo -v ; curl https://rclone.org/install.sh | sudo bash -s beta
+
+Then, make a new config with:
+
+    rclone config
+
+Afterwards, proceed with the config procedure:
+1. Create new remote by selecting n.
+2. Select a name for the new remote. For example, use r2.
+3. Select the Amazon S3 Compliant Storage Providers storage type (type `4`)
+4. Select Cloudflare R2 storage for the provider (type `6`)
+5. Select whether you would like to enter AWS credentials manually, or get it from the runtime environment.
+6. Enter the Access Key ID.
+7. Enter Secret Access Key (password).
+8. Select the region to connect to (optional).
+9. Select the S3 API endpoint.
+
+> [!TIP]
+> You can get the Access Key ID and Secret from the Manage API Token menu in R2 page. As for the S3 API Endpoint, get it from your specific bucket setting.
+
+Once you're done configuring your rclone, run the following command:
+
+    chmod +x upload-to-r2.sh
+    ./upload-to-r2.sh
+
+> [!IMPORTANT]
+> Make sure all of the CSV and Parquet files are available and belong to the same directory as the script. Configure your remote and bucket name accordingly in the `upload-to-r2.sh` file.
 
 
