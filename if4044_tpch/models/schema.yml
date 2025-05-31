@@ -25,3 +25,109 @@ models:
       - name: revenue
         tests:
           - not_null
+  - name: stg_sales_data
+    description: |
+      Cleaned, single-source-of-truth sales fact. 
+      Joins TPC-H tables: lineitem, orders, customer, nation, region, part.
+    config:
+      materialized: table
+    columns:
+      - name: order_key
+        description: "Surrogate key representing the TPC-H lineitem order key"
+      - name: part_key
+        description: "Foreign key to the part table"
+      - name: line_revenue
+        description: "Revenue for each line calculated as extendedprice * (1 - discount)"
+      - name: order_date
+        description: "Date on which the order was placed"
+      - name: region
+        description: "Region name derived from customer → nation → region"
+      - name: product_name
+        description: "Name of the product (part)"
+
+  - name: regional_revenue
+    description: |
+      Aggregated total revenue per region.
+    config:
+      materialized: table
+    columns:
+      - name: region
+        description: "Region name"
+      - name: total_revenue
+        description: "Sum of line_revenue for all orders in this region"
+
+  - name: top_products_by_region
+    description: |
+      Top N products by revenue per region. 
+    config:
+      materialized: table
+    columns:
+      - name: region
+        description: "Region name"
+      - name: part_key
+        description: "Foreign key to the part table"
+      - name: line_revenue
+        description: "Revenue for each line"
+      - name: product_name
+        description: "Name of the top product for that region"
+      - name: _row_num
+        description: |
+          Ranking within each region (ROW_NUMBER over partition region ORDER BY line_revenue DESC). 
+
+  - name: monthly_growth
+    description: |
+      Month-over-month revenue growth per region. 
+    config:
+      materialized: table
+    columns:
+      - name: region
+        description: "Region name"
+      - name: order_month
+        description: "First day of the month (bucketed via month_trunc)"
+      - name: revenue
+        description: "Total revenue for that region-month"
+      - name: prev_revenue
+        description: "Revenue of the previous month for the same region (NULL if none)"
+      - name: growth_rate
+        description: |
+          (revenue - prev_revenue) / prev_revenue, or NULL if prev_revenue = 0.
+
+macros:
+  - name: calculate_revenue
+    description: >
+      Returns an expression to calculate revenue after applying a discount.
+      This macro multiplies the price column by (1 - discount column).
+    arguments:
+      - name: price_col
+        type: string
+        description: The column containing the original price.
+      - name: discount_col
+        type: string
+        description: The column containing the discount as a decimal.
+
+  - name: month_trunc
+    description: >
+      Truncates a date column to the first day of the month using DATE_TRUNC.
+    arguments:
+      - name: date_col
+        type: string
+        description: The column containing a date or timestamp.
+
+  - name: top_n_per_group
+    description: >
+      Selects the top N rows within each group from a given table based on a sort column.
+      It uses ROW_NUMBER() to rank rows per group.
+    arguments:
+      - name: table
+        type: string
+        description: The reference to the table or CTE.
+      - name: group_cols
+        type: list[string]
+        description: List of columns to group by.
+      - name: order_col
+        type: string
+        description: Column used to sort rows within each group.
+      - name: n_var
+        type: string
+        description: >
+          Defaults to `'top_n'`. If not provided via `--vars`, defaults to 1.
