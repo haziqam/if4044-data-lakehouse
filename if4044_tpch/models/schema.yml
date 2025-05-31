@@ -19,7 +19,7 @@ models:
     description: >
       TPC-H Q3: Revenue by customer for orders placed before 1995-03-15 and shipped after
     columns:
-      - name: c_custkey
+      - name: l_orderkey
         tests:
           - not_null
       - name: revenue
