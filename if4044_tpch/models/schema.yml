@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: tpch
+    database: HOL_ICE_DB
+    schema: PUBLIC
+    tables:
+      - name: lineitem
+      - name: orders
+      - name: customer
+      - name: partsupp
+      - name: part
+      - name: supplier
+      - name: nation
+      - name: region
+
+models:
+  - name: q03_revenue
+    description: >
+      TPC-H Q3: Revenue by customer for orders placed before 1995-03-15 and shipped after
+    columns:
+      - name: c_custkey
+        tests:
+          - not_null
+      - name: revenue
+        tests:
+          - not_null
