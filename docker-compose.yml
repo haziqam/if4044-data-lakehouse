@@ -1,0 +1,16 @@
+services:
+  trino:
+    image: trinodb/trino
+    container_name: trino
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./trino-config:/etc/trino
+      - ./trino-data:/data/trino
+    depends_on:
+      - nessie
+
+  nessie:
+    image: ghcr.io/projectnessie/nessie
+    ports:
+      - "19120:19120"
