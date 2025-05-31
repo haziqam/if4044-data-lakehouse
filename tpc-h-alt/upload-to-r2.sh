@@ -79,7 +79,7 @@ for name in "${TABLES[@]}"; do
     src_file="${LOCAL_DIR}/${name}.${ext}"
 
     if [[ ! -f "$src_file" ]]; then
-      echo "⚠️  Warning: '$src_file' not found. Skipping."
+      echo "Warning: '$src_file' not found. Skipping."
       continue
     fi
 
