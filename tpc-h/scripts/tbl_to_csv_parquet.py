@@ -157,7 +157,6 @@ def create_spark_compatible_schema(df, table_name):
     
     for col in df.columns:
         if dtypes[col] == 'date':
-            # Use DATE type instead of TIMESTAMP for better Spark compatibility
             schema_fields.append(pa.field(col, pa.date32()))
         elif dtypes[col] == int:
             schema_fields.append(pa.field(col, pa.int64()))
@@ -198,31 +197,26 @@ def tbl_to_csv_parquet(
         
         df.columns = column_names
         
-        # Handle date columns differently for better Spark compatibility
         for col, dtype in dtypes.items():
             if dtype == 'date':
-                # Parse dates and convert to date (not datetime)
                 df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
             else:
                 df[col] = df[col].astype(dtype)
 
         logger.info(f"Successfully read {len(df)} rows from {input_tbl_file}")
 
-        # Save CSV
         df.to_csv(output_csv_file, sep=";", index=False)
         logger.info(f"Successfully converted {input_tbl_file} to {output_csv_file}")
 
-        # Create Spark-compatible schema and save Parquet
         schema = create_spark_compatible_schema(df, table_name)
         table = pa.Table.from_pandas(df, schema=schema)
         
-        # Write with specific options for Spark compatibility
         pq.write_table(
             table, 
             output_parquet_file, 
             compression='snappy',
-            use_deprecated_int96_timestamps=False,  # Avoid deprecated timestamp format
-            coerce_timestamps='ms',  # Use millisecond precision instead of nanoseconds
+            use_deprecated_int96_timestamps=False,
+            coerce_timestamps='ms',
             allow_truncated_timestamps=True
         )
         

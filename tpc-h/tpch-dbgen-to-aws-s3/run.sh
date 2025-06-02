@@ -18,10 +18,6 @@ DBGEN_PATH="$ROOT_PATH/tpch-dbgen"
 # Python script for converting tbl -> csv + parquet
 CONVERTER_SCRIPT="$ROOT_PATH/scripts/tbl_to_csv_parquet.py"
 
-#########################################
-# Should not need to edit below this line
-#########################################
-
 DIR_NAME="tpc-h-${SIZE}gb"
 OUTPUT_DIR="$ROOT_PATH/$DIR_NAME"
 mkdir -p "$OUTPUT_DIR"
