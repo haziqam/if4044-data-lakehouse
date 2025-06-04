@@ -52,32 +52,34 @@ However, we do not continue this architecture since we apparently Trino cannot c
 
 ```
 .
-├── if4044_tpch/              # dbt project for TPC-H analytics
-│   ├── models/               # dbt models (staging, marts)
-│   ├── macros/               # Custom SQL macros
-│   ├── analyses/             # Ad-hoc analytical queries
-│   ├── tests/                # Data tests
-│   └── dbt_project.yml       # dbt project configuration
+├── csv_vs_parquet_comparison/ # contains queries for comparing csv and parquet
+│   ├── queries/ 
+├── if4044_tpch/               # dbt project for TPC-H analytics
+│   ├── models/                # dbt models (staging, marts)
+│   ├── macros/                # Custom SQL macros
+│   ├── analyses/              # Ad-hoc analytical queries
+│   ├── tests/                 # Data tests
+│   └── dbt_project.yml        # dbt project configuration
 │
-├── trino-config/             # Trino server configuration
-│   ├── catalog/              # Connector configurations
+├── trino-config/              # Trino server configuration
+│   ├── catalog/               # Connector configurations
 │   │   └── iceberg.properties # Iceberg catalog config
-│   ├── config.properties     # Trino server properties
-│   ├── jvm.config            # JVM configuration
-│   ├── log.properties        # Trino log properties 
-│   └── node.properties       # Node-specific configuration
+│   ├── config.properties      # Trino server properties
+│   ├── jvm.config             # JVM configuration
+│   ├── log.properties         # Trino log properties 
+│   └── node.properties        # Node-specific configuration
 │
-├── tpc-h/                    # TPC-H data generation tools
-│   ├── tpch-dbgen/           # TPC-H data generator
-│   ├── scripts/              # Helper scripts for data loading
-│   └── tpch-dbgen-to-aws-s3/ # S3 upload utilities
+├── tpc-h/                     # TPC-H data generation tools
+│   ├── tpch-dbgen/            # TPC-H data generator
+│   ├── scripts/               # Helper scripts for data loading
+│   └── tpch-dbgen-to-aws-s3/  # S3 upload utilities
 │
-├── tpc-h-alt/                # Alternative TPC-H generation with DuckDB
-│   ├── upload-to-r2.sh       # Script for uploading to Cloudflare R2
-│   └── README.md             # Instructions for DuckDB-based TPC-H generation
+├── tpc-h-alt/                 # Alternative TPC-H generation with DuckDB
+│   ├── upload-to-r2.sh        # Script for uploading to Cloudflare R2 
+│   └── README.md              # Instructions for DuckDB-based TPC-H generation
 │
-├── docker-compose.yml        # Docker services definition
-└── README.md                 # This file
+├── docker-compose.yml         # Docker services definition
+└── README.md                  # This file
 ```
 
 ## Prerequisites
@@ -86,24 +88,9 @@ However, we do not continue this architecture since we apparently Trino cannot c
 - S3-compatible storage (MinIO, AWS S3, Cloudflare R2, etc.)
 - Python 3.8+
 
-## Quick Start
+## How to Run
 
-### 1. Set environment variables
-
-```bash
-export S3_ACCESS_KEY=your_access_key
-export S3_SECRET_KEY=your_secret_key
-export S3_ENDPOINT=http://your-s3-endpoint
-export WAREHOUSE_DIR=s3://your-bucket/warehouse
-```
-
-### 2. Start the infrastructure
-
-```bash
-docker-compose up -d
-```
-
-### 3. Initialize TPC-H data
+### 1. Initialize TPC-H data
 
 ```bash
 cd tpc-h/tpch-dbgen-to-aws-s3/
@@ -111,7 +98,7 @@ chmod +x run.sh
 ./run.sh
 ```
 
-### 4. Run dbt models
+### 2. Run dbt models
 
 ```bash
 cd /if4044_tpch
@@ -129,11 +116,25 @@ This project provides two methods for generating TPC-H data:
 1. **Main method** (in the `tpc-h` directory): Uses the official TPC-H dbgen tool and upload it to S3
 2. **DuckDB-based method** (in the `tpc-h-alt` directory): An alternative approach that uses DuckDB's TPC-H extension for data generation, with tools to convert to CSV/Parquet and upload to Cloudflare R2 storage
 
-### Trino x Iceberg x Nessie
-This project enable creating and modifying Iceberg tables using Trino as query engine and Nessie as "git for data".
-1. Set environment variables as shown in [Quick Start](#quick-start)
-2. Run `docker compose up` in project root directory
-3. Check `http://localhost:8082` to see Trino UI and `http://localhost:19120` to see Nessie UI
+## Trino x Iceberg x Nessie
+### 1. Set environment variables
+
+```bash
+export S3_ACCESS_KEY=your_access_key
+export S3_SECRET_KEY=your_secret_key
+export S3_ENDPOINT=http://your-s3-endpoint
+export WAREHOUSE_DIR=s3://your-bucket/warehouse
+```
+
+### 2. Start the infrastructure
+In the project root directory, run:
+
+```bash
+docker-compose up -d
+```
+### 3. Check Trino UI and Nessie UI
+Trino UI is deployed in `http://localhost:8082` and Nessie UI in `http://localhost:19120`
+
 
 <div align="center">
   <sub>Built for the IF4044 Big Data Technology Course</sub>
