@@ -33,7 +33,7 @@ This project implements a modern data lakehouse architecture using Apache Iceber
 ## Architecture
 
 <p align="center">
-  <img src="https://via.placeholder.com/800x400?text=Data+Lakehouse+Architecture" alt="Architecture Diagram"/>
+  <img src="architecture_diagram.png" alt="Architecture Diagram"/>
 </p>
 
 The architecture consists of:
@@ -41,12 +41,15 @@ The architecture consists of:
 - **DuckDB**: Embedded analytical database used for alternative TPC-H data generation
 - **Snowflake**: Cloud data platform for comparison and integration scenarios
 - **Object Storage**: S3-compatible storage for data files
+- **AWS Glue**: For generating table metadata
+- and many more, detail is included in the report.
 
 We also tried:
 - **Apache Iceberg**: Table format providing ACID transactions and schema evolution
 - **Project Nessie**: Git-like version control for data
 - **Trino**: Distributed SQL query engine for data access
-However, we do not continue this architecture since we apparently Trino cannot create Iceberg table from Parquet files. The Iceberg x Nessie x Trino set-up is completed, though. You can see Trino UI and Nessie UI with these steps.
+
+However, we do not continue this architecture since we apparently Trino cannot create Iceberg table from Parquet files. The Iceberg x Nessie x Trino set-up is completed, though. You can see Trino UI and Nessie UI with these steps. For the complete explanation
 
 ## Project Structure
 
