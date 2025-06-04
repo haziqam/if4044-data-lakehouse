@@ -1,17 +1,27 @@
-```
+## Explanation
 
-python3 "tbl_to_csv_parquet.py" \
-    --input "../tpc-h-50gb/lineitem.tbl.10" \
-    --output_csv "../tpc-h-50gb/lineitem.tbl.10.csv" \
-    --output_parquet "../tpc-h-50gb/lineitem.tbl.10.parquet" \
-    --table "LINEITEM"
+There are two notebooks in this directory:
 
-```
+1. `iceberg-local-test.ipynb`
 
-```
-python3 "tbl_to_csv_parquet.py" \
-    --input "../tpc-h-50gb/lineitem.tbl.1" \
-    --output_csv "lineitem.tbl.1.csv" \
-    --output_parquet "lineitem.tbl.11.parquet" \
-    --table "LINEITEM"
-```
+    This notebook was only used as a proof of concept to try inserting data into iceberg using local standalone spark. Once we managed to insert the data into iceberg using this script, we decided to move to AWS Glue for faster execution, so we used the second script. But to run this script:
+
+    1. Fill out the environment variables needed, based on `.env.example`.
+
+        - Copy env template
+
+            ```
+            cp .env.example .env
+            ```
+
+        - Fill the `ACCESS_KEY` and `SECRET_ACCESS_KEY` from your AWS IAM user
+
+    2. Install requirements
+        ```
+        pip install -r requirements.txt
+        ```
+    3. Run the code blocks in the notebook
+
+2. `iceberg-glue.ipynb`
+
+    This is the actual script that we used to insert the data to iceberg, but it should be run in the AWS Glue Notebook
