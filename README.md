@@ -37,14 +37,16 @@ This project implements a modern data lakehouse architecture using Apache Iceber
 </p>
 
 The architecture consists of:
-
-- **Apache Iceberg**: Table format providing ACID transactions and schema evolution
-- **Project Nessie**: Git-like version control for data
-- **Trino**: Distributed SQL query engine for data access
 - **dbt**: Data transformation and modeling framework
 - **DuckDB**: Embedded analytical database used for alternative TPC-H data generation
 - **Snowflake**: Cloud data platform for comparison and integration scenarios
 - **Object Storage**: S3-compatible storage for data files
+
+We also tried:
+- **Apache Iceberg**: Table format providing ACID transactions and schema evolution
+- **Project Nessie**: Git-like version control for data
+- **Trino**: Distributed SQL query engine for data access
+However, we do not continue this architecture since we apparently Trino cannot create Iceberg table from Parquet files. The Iceberg x Nessie x Trino set-up is completed, though. You can see Trino UI and Nessie UI with these steps.
 
 ## Project Structure
 
@@ -62,6 +64,7 @@ The architecture consists of:
 │   │   └── iceberg.properties # Iceberg catalog config
 │   ├── config.properties     # Trino server properties
 │   ├── jvm.config            # JVM configuration
+│   ├── log.properties        # Trino log properties 
 │   └── node.properties       # Node-specific configuration
 │
 ├── tpc-h/                    # TPC-H data generation tools
@@ -125,6 +128,12 @@ This project provides two methods for generating TPC-H data:
 
 1. **Main method** (in the `tpc-h` directory): Uses the official TPC-H dbgen tool and upload it to S3
 2. **DuckDB-based method** (in the `tpc-h-alt` directory): An alternative approach that uses DuckDB's TPC-H extension for data generation, with tools to convert to CSV/Parquet and upload to Cloudflare R2 storage
+
+### Trino x Iceberg x Nessie
+This project enable creating and modifying Iceberg tables using Trino as query engine and Nessie as "git for data".
+1. Set environment variables as shown in [Quick Start](#quick-start)
+2. Run `docker compose up` in project root directory
+3. Check `http://localhost:8082` to see Trino UI and `http://localhost:19120` to see Nessie UI
 
 <div align="center">
   <sub>Built for the IF4044 Big Data Technology Course</sub>
